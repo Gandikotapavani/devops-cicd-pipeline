@@ -1,7 +1,15 @@
+
 pipeline {
     agent any
 
     stages {
+
+        stage('Checkout Code') {
+            steps {
+                echo 'Checking out source code...'
+                checkout scm
+            }
+        }
 
         stage('Verify Docker') {
             steps {
@@ -12,6 +20,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
+                echo 'Building Docker image...'
                 sh 'docker build -t devops-flask-app:latest .'
             }
         }
@@ -52,15 +61,32 @@ pipeline {
                 '''
             }
         }
+
+        stage('Deploy to Render') {
+            steps {
+                withCredentials([
+                    string(
+                        credentialsId: 'render-deploy-hook',
+                        variable: 'RENDER_HOOK'
+                    )
+                ]) {
+                    sh '''
+                        curl --fail --silent --show-error \
+                        -X POST "$RENDER_HOOK"
+                    '''
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'All pipeline stages completed successfully!'
+            echo 'Render deployment triggered!'
         }
 
         failure {
-            echo 'Pipeline failed. Check Jenkins console output.'
+            echo 'Pipeline failed. Check Console Output.'
         }
     }
 }
