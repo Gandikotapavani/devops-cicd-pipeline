@@ -2,21 +2,21 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
+        stage('Verify Docker') {
             steps {
-                checkout scm
+                bat 'docker --version'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t devops-flask-app .'
+                bat 'docker build -t devops-flask-app .'
             }
         }
 
-        stage('Verify Docker Image') {
+        stage('Verify Image') {
             steps {
-                sh 'docker images devops-flask-app'
+                bat 'docker images devops-flask-app'
             }
         }
     }
